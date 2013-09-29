@@ -1,0 +1,17 @@
+Flask==0.10.1
+Flask-SQLAlchemy==0.16
+Flask-Script==0.5.2
+Flask-Testing==0.4
+Jinja2==2.6
+SQLAlchemy==0.8.0b2
+Werkzeug==0.8.3
+argparse==1.2.1
+docutils==0.9.1
+funkload==1.16.1
+itsdangerous==0.23
+mock==1.0.1
+nose==1.2.1
+simplejson==3.3.0
+twill==0.9
+webunit==1.3.10
+wsgiref==0.1.2
