@@ -1,24 +1,27 @@
-titans-smart-grid
-=================
+# device-mesh
 
-Titans 'Web of Things' Gateway
-
+M2M Gateway
 
 
+## Stack
 
-Stack
+Group of devices.
 
 * name
 * description
 
 
-Location
+## Location
+
+Location, timestamping.
 
 * lat
 * lon
 * timestamp
 
-Device
+## Device
+
+Device.
 
 * stack
 * name
@@ -27,8 +30,9 @@ Device
 * location
 
 
+## Node
 
-Node
+Part of a device.
 
 * device
 * name
@@ -39,8 +43,9 @@ Node
 * max_value
 * current_value
 
-
 Point
+
+# Datapoint for a given node.
 
 * node
 * timestamp

@@ -12,9 +12,10 @@ from logging.handlers import RotatingFileHandler
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
-
+from flask.ext.cache import Cache
 
 db = SQLAlchemy()
+cache = Cache()
 
 
 def set_base_conf(app):
@@ -32,6 +33,7 @@ def create_app(set_conf=None):
     set_conf(app)
 
     db.init_app(app)
+    cache.init_app(app)
 
     # Logging stuf
     file_handler = RotatingFileHandler(os.path.join(app.config['LOGS_DIR'], 'app.log'))

@@ -14,3 +14,5 @@ class Configuration(BaseConfiguration):
     TESTING = True
 
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+
+    CACHE_TYPE = 'simple'
