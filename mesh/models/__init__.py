@@ -4,92 +4,60 @@
 # name : Python file template .... :
 
 __author__ = "Pedro Werneck (pjwerneck@gmail.com)"
-__date__ = "Tue Jan  8 19:06:41 2013"
+__date__ = "Sun Sep 29 20:42:27 2013"
 
 
 from datetime import datetime
 
-import flask
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from werkzeug.exceptions import NotFound, BadRequest, Unauthorized, Forbidden, NotImplemented
 
-from .. import db
+from sqlalchemy.orm import defer
+from sqlalchemy.exc import InvalidRequestError
+
+from mesh import db
 
 
-class SQLMixIn(object):
+class BaseModel(db.Model):
 
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
+    __abstract__ = True
 
-    def refresh(self):
+    created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
+    updated_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def save(self, commit=True, session=None):
+
+        if session is None:
+            session = db.session
+
+        session.add(self)
+        if commit:
+            session.commit()
+
+    def refresh(self, session=None):
+        if session is None:
+            session = db.session
+
         try:
-            db.session.refresh(self)
+            session.refresh(self)
         except InvalidRequestError:
-            db.session.add(self)
+            session.add(self)
+
+    def delete(self, session=None):
+        if session is None:
+            session = db.session
+
+        session.delete(self)
+        session.commit()
 
     @classmethod
-    def get(cls, **kwargs):
-        """Helper method for id querying. Query must return a single result.
-        """
-        try:
-            return cls.query.filter_by(**kwargs).one()
-        except NoResultFound:
-            flask.abort(404)
-        except MultipleResultsFound:
-            flask.abort(400, "Multiple results found")
+    def defer_all_but(cls, *names):
+        names = names + ('id',)
+        columns = [x.name for x in cls.__table__.columns]
+        return [defer(x) for x in columns if x not in names]
 
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
+    def to_dict(self):
+        return dict(self)
 
     def __iter__(self):
-        """Returns key/value pairs for dict conversion.
-        """
-        for column in self.__table__.columns:
-            n = column.name
-            v = getattr(self, n)
-
-            # since dict is only used for serialization, seems safe to
-            # always convert datetime to str to avoid problems with
-            # json
-            if isinstance(column.type, DateTime):
-                v = str(v)
-
-            yield n, v
-
-
-class Stack(db.Model, SQLMixIn):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(32), unique=True, nullable=False)
-    description = db.Column(db.String(256), nullable=True)
-
-    created_date = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __iter__(self):
-        yield 'id', self.id
-        yield 'name', self.name
-        yield 'description', self.description
-
-    def __unicode__(self):
-        return self.name
-
-
-class Device(db.Model, SQLMixIn):
-    id = db.Column(db.Integer, primary_key=True)
-    id_stack = db.Column(db.Integer, db.ForeignKey(Stack.id), nullable=False)
-
-    name = db.Column(db.String(255), unique=True, nullable=False)
-    description = db.Column(db.String(256), nullable=True)
-
-    created_date = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-
-    def __iter__(self):
-        yield 'id', self.id
-        yield 'name', self.name
-        yield 'description', self.description
-
-    def __unicode__(self):
-        return self.name
-
+        yield 'created_at', self.created_at.replace(microsecond=0).isoformat()
+        yield 'updated_at', self.updated_at.replace(microsecond=0).isoformat()
